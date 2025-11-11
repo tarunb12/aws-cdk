@@ -92,3 +92,50 @@ const infrastructureConfiguration = new imagebuilder.InfrastructureConfiguration
   }
 });
 ```
+
+## Workflow
+
+Workflows define the sequence of steps that Image Builder performs during image creation. There are three workflow
+types: BUILD (covers build stage configuration), TEST (covers test stage configuration), and DISTRIBUTION (covers
+container image distribution). Workflows can be customized to include specific steps, error handling, and conditional
+logic for complex image building scenarios.
+
+### Example
+
+```ts
+const workflow = new imagebuilder.Workflow(this, 'Workflow', {
+  workflowName: 'custom-build-workflow',
+  workflowType: imagebuilder.WorkflowType.BUILD,
+  workflowVersion: '1.0.0',
+  description: 'A test workflow',
+  changeDescription: 'Initial version',
+  kmsKey: kms.Key.fromLookup(this, 'WorkflowKey', { aliasName: 'alias/workflow-encryption-key' }),
+  // Workflow to create an AMI from an existing EC2 instance
+  data: imagebuilder.WorkflowData.fromJsonObject({
+    name: 'custom-build-workflow',
+    description: 'Workflow to build an AMI from an EC2 instance',
+    schemaVersion: imagebuilder.WorkflowSchemaVersion.V1_0,
+    parameters: [
+      {
+        name: 'instanceId',
+        type: imagebuilder.WorkflowParameterType.STRING
+      }
+    ],
+    steps: [
+      {
+        name: 'CreateOutputAMI',
+        action: imagebuilder.WorkflowAction.CREATE_IMAGE,
+        onFailure: imagebuilder.WorkflowOnFailure.ABORT,
+        inputs: { 'instanceId': 'i-123' }
+      },
+      {
+        name: 'TerminateBuildInstance',
+        action: imagebuilder.WorkflowAction.TERMINATE_INSTANCE,
+        onFailure: imagebuilder.WorkflowOnFailure.CONTINUE,
+        inputs: { 'instanceId': 'i-123' }
+      }
+    ],
+    outputs: [{ name: 'ImageId', value: 'ami-123' }]
+  })
+});
+```
