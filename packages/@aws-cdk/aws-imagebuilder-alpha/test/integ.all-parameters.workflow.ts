@@ -13,7 +13,7 @@ const key = new kms.Key(stack, 'Workflow-EncryptionKey', {
 });
 
 new imagebuilder.Workflow(stack, 'InlineWorkflow', {
-  workflowName: 'aws-cdk-imagebuilder-workflow-all-parameters-inline-workflow',
+  workflowName: 'aws-cdk-imagebuilder-workflow-all-parameters-inline',
   workflowVersion: '1.0.0',
   workflowType: imagebuilder.WorkflowType.BUILD,
   description: 'This is a test workflow',
